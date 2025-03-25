@@ -6,7 +6,7 @@ import re
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
 class AIProcessor:
@@ -14,7 +14,8 @@ class AIProcessor:
         api_key = os.getenv("GROQ_API_KEY")
         self.client = groq.Client(api_key=api_key)
     
-    def analyze_process(self, requirements):
+    def analyze_process(self, requirements: Dict[str, Any]) -> Dict[str, Any]:
+        """Processes system design requirements using Groq AI and returns structured JSON output."""
         prompt = self._generate_prompt(requirements)
         
         try:
@@ -32,30 +33,37 @@ class AIProcessor:
             raise Exception(f"Analysis error: {str(e)}")
     
     def _generate_prompt(self, requirements: Dict[str, Any]) -> str:
-        return f"""Analyze the following system design requirements and provide a brief technical implementation plan. Format the response as a structured JSON document.
+        """Generates a structured prompt for Groq AI to follow a strict JSON response format."""
+        return f"""
+Analyze the following system design requirements and generate a structured technical implementation plan. 
 
-System Requirements:
+### **System Requirements:**
 {requirements['description']}
 
-Focus on these areas:
-1. Scalability
-2. Security
-3. Error Handling
+**Focus Areas:**
+1. Scalability  
+2. Security  
+3. Error Handling  
 
-Include a simple diagram using Mermaid.js with these components:
-- Client
-- API Gateway
-- Database
+Diagram Rules (Mermaid.js)
 
-Example diagram structure:
-graph TD
-    Client -->|Request| API[API Gateway]
-    API -->|Query| DB[Database]
-    API -->|Cache Check| Cache[Cache Layer]
-    Cache -->|Cache Hit| Client
-    Cache -->|Cache Miss| DB
+    Start with graph TD (Top-down)
 
-Return the response in this JSON structure:
+    Nodes: [Label] for boxes, ((Label)) for circles, [(Label)] for databases/storage
+
+    Arrows: --> for connections, -->|text| for labeled connections
+
+    Ensure no extra > after labeled connections (use -->|text| B, not -->|text|> B)
+
+    Use line breaks \n for readability
+
+    Format the diagram properly for rendering, keeping structure clean and consistent
+
+    DO not solely add this > symbol in single after the connection like use -->|text| B, not -->|text|> B 
+
+    Do not imagine or hallucinate the diagram, use the provided information only
+**Expected JSON Format:**
+```json
 {{
     "overview": "Brief overview of the system",
     "components": [
@@ -73,14 +81,94 @@ Return the response in this JSON structure:
     ],
     "diagram": "mermaid flowchart code"
 }}
+
+    For the diagram field, follow these strict Mermaid syntax rules:
+        1. Always start with 'graph TD' (top-down) or 'graph LR' (left-right)
+        2. Use simple node definitions: A[Label] for boxes, A((Label)) for circles, A[(Label)] for databases
+        3. Use simple arrows: --> for connections, -->|text| for labeled connections
+        4. Avoid special characters in labels
+        5. Use straightforward flow patterns
+        6. Keep node names simple (A, B, C, etc)
+        7. Separate nodes and connections with line breaks (\\n)
+        8. Follow this pattern for each connection: NodeA -->|Action| NodeB
+        9. Use consistent spacing and formatting
+        10. Test the syntax at https://mermaid.live before using
+
 """
+
+
+    def _parse_response(self, response_text: str) -> Dict[str, Any]:
+        """Parses AI response, extracts JSON, and ensures valid Mermaid.js formatting."""
+        try:
+            # Debugging: Show raw AI response
+            st.write("Raw response received:")
+            st.code(response_text[:200] + "...", language="text")
+            
+            # Clean markdown and extract JSON content
+            cleaned_text = re.sub(r'(?:json|mermaid)?\s*|\s*', '', response_text)
+            
+            # Handle Mermaid.js inside JSON field, ensuring no extra '>' in labeled connections
+            cleaned_text = re.sub(r':\s`\s(graph TD[\s\S]*?)`\s([,}])', r': "\1"\2', cleaned_text)
+            
+            # Extract valid JSON
+            start_idx, end_idx = cleaned_text.find("{"), cleaned_text.rfind("}")
+            if start_idx == -1 or end_idx == -1:
+                raise ValueError("No valid JSON structure found")
+            
+            json_str = cleaned_text[start_idx:end_idx + 1]
+            json_str = re.sub(r'\s+', ' ', json_str).replace('\\"', '"').replace('""', '"')
+            
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as e:
+                st.error(f"JSON Parse Error at position {e.pos}:")
+                st.code(f"...{json_str[max(0, e.pos - 100):min(len(json_str), e.pos + 100)]}...", language="json")
+                data = json.loads(re.sub(r':\s"([^"?graph TD[^"]*?)]"', r': "\1"', json_str))
+            
+            # Clean up and validate the Mermaid.js diagram
+            if 'diagram' in data:
+                data['diagram'] = self._format_mermaid(data['diagram'])
+                st.write("Diagram code:")
+                st.code(data['diagram'], language="mermaid")
+            
+            return data
+        
+        except json.JSONDecodeError as e:
+            st.error(f"JSON Parse Error: {str(e)}")
+            st.code(json_str, language="json")
+            raise ValueError(f"Invalid JSON format: {str(e)}")
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
+            st.code(response_text[:500] + "...", language="text")
+            raise ValueError(f"Error processing response: {str(e)}")
+
+    def _format_mermaid(diagram: str) -> str:
+        """Ensures proper formatting of Mermaid.js diagrams."""
+        diagram = diagram.strip('"`\'').replace('\\n', '\n')
+        
+        # Ensure it starts with "graph TD"
+        if not diagram.strip().startswith('graph'):
+            diagram = 'graph TD\n' + diagram
+        
+        # Ensure proper formatting for labeled connections (removes extra '>' after labels)
+        diagram = re.sub(r'--\|([^|]+)\|>', r'--|\1|', diagram)
+        
+        # Add style definitions
+        style_defs = '''    %% Style definitions
+        classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
+        classDef subgraphStyle fill:#e8e8e8,stroke:#666,stroke-width:2px;
+        '''
+        if '%% Style definitions' not in diagram:
+            diagram = diagram.replace('graph TD', f'graph TD\n{style_defs}')
+        
+        return '\n'.join(line.strip() for line in diagram.split('\n'))
 
     def _parse_response(self, response_text):
         """
-        Parses the response and handles Mermaid.js diagrams.
+        More robust response parser that handles different diagram formats
         """
         try:
-            # Print the raw response for debugging
+            # First, let's print the raw response for debugging
             st.write("Raw response received:")
             st.code(response_text[:200] + "...", language="text")
 
@@ -90,7 +178,7 @@ Return the response in this JSON structure:
             # Replace backtick-wrapped diagram with proper JSON string
             cleaned_text = re.sub(r':\s*`\s*(graph TD[\s\S]*?)`\s*([,}])', r': "\1"\2', cleaned_text)
             
-            # Extract JSON content
+            # Find the JSON content between first { and last }
             start_idx = cleaned_text.find("{")
             end_idx = cleaned_text.rfind("}")
             
@@ -106,13 +194,27 @@ Return the response in this JSON structure:
             json_str = json_str.replace('\\"', '"')
             json_str = json_str.replace('""', '"')
             
-            # Parse JSON
-            data = json.loads(json_str)
-            
+            try:
+                # Try to parse JSON
+                data = json.loads(json_str)
+            except json.JSONDecodeError as e:
+                # If parsing fails, show context around error
+                st.error(f"JSON Parse Error at position {e.pos}:")
+                context_start = max(0, e.pos - 100)
+                context_end = min(len(json_str), e.pos + 100)
+                st.code(f"...{json_str[context_start:context_end]}...", language="json")
+                
+                # Additional cleanup for another attempt
+                json_str = re.sub(r':\s*"([^"]*?graph TD[^"]*?)"', r': "\1"', json_str)
+                json_str = json_str.replace('\n', ' ')
+                data = json.loads(json_str)  # Try one more time
+                
             # Clean up diagram if present
             if 'diagram' in data:
                 diagram = data['diagram']
-                diagram = diagram.strip('"`\'').replace('\\n', '\n')
+                
+                # Remove any surrounding quotes or backticks
+                diagram = diagram.strip('"`\'')
                 
                 # Ensure proper line breaks
                 diagram = diagram.replace('\\n', '\n')
@@ -132,9 +234,6 @@ Return the response in this JSON structure:
                 # Clean up formatting
                 diagram = '\n'.join(line.strip() for line in diagram.split('\n'))
                 
-                # Replace standalone '-->' with ' ' (space) while preserving '---->'
-                diagram = re.sub(r'(?<!-)-(?!-)>', ' ', diagram)
-                
                 # Store cleaned diagram
                 data['diagram'] = diagram
                 
@@ -153,11 +252,10 @@ Return the response in this JSON structure:
             st.write("Response text that caused the error:")
             st.code(response_text[:500] + "...", language="text")
             raise ValueError(f"Error processing response: {str(e)}")
-    
-    def _validate_keywords(self, diagram):
-        """
-        Validates the presence of key components in the diagram.
-        """
+
+
+    def _validate_keywords(self, diagram: str) -> Dict[str, list]:
+        """Checks if the Mermaid diagram contains all necessary components."""
         required_components = {
             "Frontend": ["Client", "UI", "Frontend", "Web", "Mobile"],
             "Network": ["CDN", "Load Balancer", "API Gateway", "WAF"],
@@ -170,15 +268,12 @@ Return the response in this JSON structure:
             "DevOps": ["Deploy", "CI/CD", "Container", "Pipeline"]
         }
         
-        missing = {}
-        for category, keywords in required_components.items():
-            missing_keywords = [k for k in keywords if k.lower() not in diagram.lower()]
-            if missing_keywords:
-                missing[category] = missing_keywords
+        missing = {category: [k for k in keywords if k.lower() not in diagram.lower()]
+                for category, keywords in required_components.items() if any(k.lower() not in diagram.lower() for k in keywords)}
         
         if missing:
             st.warning("Missing Components:")
             for category, keywords in missing.items():
                 st.write(f"- {category}: {', '.join(keywords)}")
-        
+
         return missing

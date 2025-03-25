@@ -1,4 +1,4 @@
-# utils/diagram_generator.py
+# src/diagram_generator.py
 class DiagramGenerator:
     def __init__(self):
         self.node_counter = 0
