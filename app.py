@@ -120,7 +120,7 @@ def main():
         try:
             with st.spinner("Analyzing system requirements..."):
                 # Initialize processors
-                ai_processor = AIProcessor()
+                llm_processes = AIProcessor()
                 
                 # Process the input with technical preferences
                 requirements = {
@@ -133,9 +133,13 @@ def main():
                     }
                 }
                 
-                # Get the analysis
-                analysis_result = ai_processor.analyze_process(requirements)
+                # ✅ Automatically append "no '>'" to fix Mermaid.js formatting issues
+                adjusted_input = f"{process_input.strip()} no '>'"
                 
+                # Process the input
+                requirements = {"description": adjusted_input}
+                analysis_result = llm_processes.analyze_process(requirements)
+
                 # Store in session state
                 st.session_state.current_analysis = analysis_result
                 

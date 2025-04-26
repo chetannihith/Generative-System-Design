@@ -97,6 +97,8 @@ Diagram Rules (Mermaid.js)
 
     DO not solely add this > symbol in single after the connection like use -->|text| B, not -->|text|> B 
 
+    Changed connections like -->|User Interaction|> to -->|User Interaction|
+
     Do not imagine or hallucinate the diagram, use the provided information only
 **Expected JSON Format:**
 ```json
@@ -143,18 +145,6 @@ Diagram Rules (Mermaid.js)
         ],
         "diagram": "mermaid flowchart code"
     }}
-
-    For the diagram field, follow these strict Mermaid syntax rules:
-        1. Always start with 'graph TD' (top-down) or 'graph LR' (left-right)
-        2. Use simple node definitions: A[Label] for boxes, A((Label)) for circles, A[(Label)] for databases
-        3. Use simple arrows: --> for connections, -->|text| for labeled connections
-        4. Avoid special characters in labels
-        5. Use straightforward flow patterns
-        6. Keep node names simple (A, B, C, etc)
-        7. Separate nodes and connections with line breaks (\\n)
-        8. Follow this pattern for each connection: NodeA -->|Action| NodeB
-        9. Use consistent spacing and formatting
-        10. Test the syntax at https://mermaid.live before using
 
 DIAGRAM SECTION:
 The diagram must be comprehensive and include ALL of these components and their interactions:
@@ -235,16 +225,30 @@ The diagram must include these components with ALL possible interactions:
 15. Monitoring and logging stack
 16. CI/CD and DevOps tools
 
-Example partial diagram structure (extend this with ALL components above):
-The diagram must follow this exact Mermaid syntax:
----
-    config:
-        look: handDrawn
-        theme: neutral
-        flowchart:
-            htmlLabels: true
-            curve: basis
-            defaultRenderer: elk
+example diagram:
+graph TD
+%% Style definitions
+classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
+classDef subgraphStyle fill:#e8e8e8,stroke:#666,stroke-width:2px;
+
+A[User Interface] -->|User Interaction| B[API Gateway & Load Balancer]
+B -->|Request Reception| C[Authentication Service]
+C -->|Authentication| D[Business Logic Layer]
+D -->|Business Logic| E[Data Layer]
+E -->|Data Storage| F[Primary Database]
+F -->|Data Retrieval| E
+E -->|Data Retrieval| D
+D -->|Response| B
+B -->|Response| A
+A -->|Error Handling| G[Error Handling]
+G -->|Error Handling| H[Logging Service]
+H -->|Log Collection| I[ELK Stack]
+I -->|Log Analysis| J[Prometheus & Grafana]
+J -->|Metric Collection| K[Metrics Collection]
+K -->|Metric Visualization| L[Grafana]
+L -->|Insights & Alerts| M[Alert Management]
+M -->|Alerts| N[Notification Service]
+N -->|Notifications| A
 """
 
 
