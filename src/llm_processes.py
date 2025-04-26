@@ -40,10 +40,46 @@ Analyze the following system design requirements and generate a structured techn
 ### **System Requirements:**
 {requirements['description']}
 
-**Focus Areas:**
-1. Scalability  
-2. Security  
-3. Error Handling  
+    System Requirements:
+    {requirements['description']}
+
+    Create a comprehensive system design with these key focus areas:
+    1. Scalability & Performance
+    2. Reliability & Fault Tolerance
+    3. Security & Data Protection
+    4. Monitoring & 
+    
+    Focus on these architectural patterns:
+    - Microservices Communication
+    - Event-Driven Architecture
+    - CQRS Pattern (if applicable)
+    - Circuit Breaker Pattern
+    - Rate Limiting & Throttling
+    - Data Partitioning Strategy
+    - Caching Hierarchy
+    - Security Measures
+
+    Include specific details for:
+    1. Data Validation & Sanitization
+    2. Error Handling & Recovery
+    3. Performance Optimization
+    4. Security Implementation
+    5. Monitoring & Alerting
+    6. Deployment Strategy
+    7. Scaling Approach
+    8. Disaster Recovery Plan
+
+    Diagram Requirements:
+    1. Use Mermaid.js flowchart syntax
+    2. Include these critical aspects:
+    - User interactions
+    - Authentication & Authorization
+    - API Gateway & Load Balancing
+    - Service Components
+    - Database Operations
+    - Caching Strategy
+    - Error Handling
+    - Monitoring & Logging 
 
 Diagram Rules (Mermaid.js)
 
@@ -65,22 +101,48 @@ Diagram Rules (Mermaid.js)
 **Expected JSON Format:**
 ```json
 {{
-    "overview": "Brief overview of the system",
-    "components": [
-        {{
-            "name": "Component name",
-            "purpose": "Purpose of the component",
-            "steps": [
-                {{
-                    "step": "1",
-                    "action": "Action performed",
-                    "details": ["Detail 1", "Detail 2"]
+        "overview": "Comprehensive overview of the system architecture and design principles",
+        "components": [
+            {{
+                "name": "Component name (Start with user interaction, follow the data flow through the system, and end with user feedback where applicable)",
+                "purpose": "Detailed purpose and responsibility of this component",
+                "steps": [
+                    {{
+                        "step": "1",
+                        "action": "Specific action or operation",
+                        "details": [
+                            "Implementation detail with specific technology/algorithm (e.g., 'JWT for authentication using RS256 algorithm')",
+                            "Configuration or setup detail with example (e.g., 'Redis cache with 1 hour TTL, LRU eviction')"
+                        ]
+                    }}
+                ],
+                "technologies": [
+                    {{
+                        "name": "Technology name (specific version if relevant)",
+                        "purpose": "Specific use case and benefits",
+                        "configuration": "Detailed configuration with examples"
+                    }}
+                ],
+                "data_flow": {{
+                    "input": "Incoming data format and validation requirements",
+                    "process": "Data transformation and business logic",
+                    "output": "Response format and error handling"
                 }}
-            ]
-        }}
-    ],
-    "diagram": "mermaid flowchart code"
-}}
+            }}
+        ],
+        "flow_steps": [
+            {{
+                "step": "1",
+                "title": "Clear step title",
+                "description": "Detailed process description",
+                "technical_details": [
+                    "Specific implementation detail with technology choice",
+                    "Configuration or setup requirement with example"
+                ]
+            }}
+        ],
+        "diagram": "mermaid flowchart code"
+    }}
 
     For the diagram field, follow these strict Mermaid syntax rules:
         1. Always start with 'graph TD' (top-down) or 'graph LR' (left-right)
@@ -94,6 +156,95 @@ Diagram Rules (Mermaid.js)
         9. Use consistent spacing and formatting
         10. Test the syntax at https://mermaid.live before using
 
+DIAGRAM SECTION:
+The diagram must be comprehensive and include ALL of these components and their interactions:
+
+1. Client-Side Flow:
+   - User Interface (React/Frontend)
+   - Form Validation
+   - Client-Side Caching
+   - Error Handling
+
+2. Network Layer:
+   - Load Balancer
+   - API Gateway
+   - CDN
+   - SSL/TLS
+
+3. Authentication & Authorization:
+   - Auth Service
+   - JWT/Token Management
+   - OAuth Flow
+   - Session Management
+
+4. Application Services:
+   - Business Logic Layer
+   - Service Discovery
+   - Message Queues
+   - Event Bus
+
+5. Data Layer:
+   - Primary Database
+   - Cache Layer
+   - Read Replicas
+   - Data Backup
+
+6. Monitoring & Logging:
+   - Logging Service
+   - Metrics Collection
+   - Alert Management
+   - Tracing System
+
+7. Security & Protection:
+   - WAF
+   - DDoS Protection
+   - Rate Limiting
+   - Data Encryption
+
+8. Scaling & Recovery:
+   - Auto Scaling
+   - Failover Mechanisms
+   - Disaster Recovery
+   - Backup Systems
+
+For the diagram field, use this exact structure:
+1. Start with client components
+2. Connect to network layer
+3. Show all authentication flows
+4. Connect to all application services
+5. Show all data layer interactions
+6. Include ALL monitoring and logging connections
+7. Show ALL security measures
+8. Include ALL scaling and recovery paths
+
+The diagram must include these components with ALL possible interactions:
+1. Multiple client applications (web, mobile, desktop)
+2. Multiple CDN edges and caching layers
+3. Complete security stack (WAF, DDoS, IDS/IPS, SIEM)
+4. Load balancers and API gateways
+5. Authentication services (OAuth, SAML, JWT)
+6. Service mesh and service discovery
+7. Multiple business logic services
+8. Caching layers and Redis clusters
+9. Message queues and dead letter queues
+10. Worker services and background processors
+11. Database primary and replicas
+12. Search services and analytics
+13. Storage solutions (S3, archives)
+14. ML services and MLOps
+15. Monitoring and logging stack
+16. CI/CD and DevOps tools
+
+Example partial diagram structure (extend this with ALL components above):
+The diagram must follow this exact Mermaid syntax:
+---
+    config:
+        look: handDrawn
+        theme: neutral
+        flowchart:
+            htmlLabels: true
+            curve: basis
+            defaultRenderer: elk
 """
 
 
