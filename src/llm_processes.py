@@ -113,6 +113,16 @@ Diagram Rules (Mermaid.js)
         ],
         "diagram": "mermaid flowchart code"
     }}
+
+example code graph TD:
+graph TD
+%% Style definitions
+classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
+classDef subgraphStyle fill:#e8e8e8,stroke:#666,stroke-width:2px;
+
+A[User Interaction] -->|User Input| B[Data Processing]
+and not like this:
+A[User Interaction] -->|User Input|> B[Data Processing]
 """
 
 
